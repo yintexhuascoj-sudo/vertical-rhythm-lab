@@ -2,61 +2,782 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Vertical Rhythm Lab</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Laboratorio de Ritmo Vertical</title>
+
 <style>
 *{box-sizing:border-box}
-body{margin:0;background:#101018;color:white;font-family:Arial;text-align:center;overflow:hidden}
-h2{margin:10px;font-size:20px}
-button,label{background:#292943;color:white;border:1px solid #555;
-padding:10px;margin:4px;border-radius:8px;display:inline-block}
-input{max-width:180px}
-#game{position:relative;width:100vw;height:75vh;max-width:600px;margin:auto;
-background:#171725;display:flex}
-.lane{width:25%;height:100%;border-left:1px solid #444;position:relative}
-.note{position:absolute;width:55px;height:55px;border-radius:50%;
-transform:translateX(-50%);display:flex;align-items:center;justify-content:center;
-font-size:28px;color:white;font-weight:bold}
-#hit{position:absolute;bottom:45px;left:0;width:100%;height:5px;background:white}
-#buttons{display:flex;width:100%;max-width:600px;margin:auto}
-.key{width:25%;height:70px;font-size:30px;background:#25253c}
-#editor{display:none}
-#info{font-size:13px;margin:5px}
+
+body{
+  margin:0;
+  background:#10111b;
+  color:white;
+  font-family:Arial,sans-serif;
+}
+
+.app{
+  max-width:650px;
+  margin:auto;
+  padding:12px;
+}
+
+h1{
+  text-align:center;
+  font-size:22px;
+}
+
+.panel{
+  background:#1b1d2b;
+  border:1px solid #35394e;
+  border-radius:14px;
+  padding:12px;
+  margin-bottom:12px;
+}
+
+button{
+  border:0;
+  border-radius:10px;
+  padding:10px 13px;
+  margin:3px;
+  background:#35394e;
+  color:white;
+  font-size:15px;
+}
+
+button:active{
+  transform:scale(.96);
+}
+
+.primary{
+  background:#6556e8;
+}
+
+.danger{
+  background:#a83c55;
+}
+
+input[type=file]{
+  width:100%;
+  margin-top:8px;
+}
+
+#song{
+  color:#b8bed8;
+  font-size:13px;
+  margin-top:7px;
+}
+
+#editor{
+  height:440px;
+  position:relative;
+  overflow:hidden;
+  border-radius:12px;
+  background:#0b0c13;
+  border:1px solid #34384d;
+}
+
+.lanes{
+  position:absolute;
+  inset:0;
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+}
+
+.lane{
+  position:relative;
+  border-right:1px solid #34384d;
+}
+
+.lane:last-child{
+  border-right:0;
+}
+
+.laneButton{
+  position:absolute;
+  bottom:8px;
+  left:5px;
+  right:5px;
+  height:55px;
+  margin:0;
+  background:#292d42;
+  font-size:12px;
+}
+
+.note{
+  position:absolute;
+  width:70px;
+  height:25px;
+  border-radius:8px;
+  background:#8174ff;
+  box-shadow:0 0 12px #6556e8;
+  z-index:5;
+}
+
+.note::after{
+  content:"";
+  position:absolute;
+  left:6px;
+  right:6px;
+  top:5px;
+  bottom:5px;
+  border-radius:5px;
+  background:#bbb5ff;
+}
+
+#time{
+  text-align:center;
+  font-size:18px;
+  margin:8px;
+}
+
+#speedText{
+  font-weight:bold;
+}
+
+#notes{
+  max-height:150px;
+  overflow:auto;
+  margin-top:10px;
+}
+
+.noteRow{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  border-bottom:1px solid #303448;
+  padding:6px 0;
+  font-size:13px;
+}
+
+.hidden{
+  display:none;
+}
+
+#game{
+  height:440px;
+  position:relative;
+  overflow:hidden;
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  background:#0b0c13;
+  border:1px solid #34384d;
+  border-radius:12px;
+}
+
+.playLane{
+  border-right:1px solid #34384d;
+  position:relative;
+}
+
+.playLane:last-child{
+  border-right:0;
+}
+
+.hit{
+  position:absolute;
+  bottom:75px;
+  left:0;
+  right:0;
+  height:4px;
+  background:white;
+  z-index:3;
+}
+
+.falling{
+  position:absolute;
+  width:60%;
+  height:25px;
+  margin-left:20%;
+  border-radius:8px;
+  background:#8174ff;
+  box-shadow:0 0 12px #6556e8;
+}
 </style>
 </head>
 
 <body>
 
-<h2>🎵 Vertical Rhythm Lab</h2>
+<div class="app">
 
-<div id="menu">
-<label>🎧 Música
-<input id="music" type="file" accept="audio/*">
-</label>
+<h1>🎵 Laboratorio de Ritmo Vertical</h1>
+
+<div class="panel">
+
+<button class="primary" onclick="modoEditor()">✏️ Editor</button>
+<button onclick="probar()">▶️ Probar</button>
+<button class="danger" onclick="borrarNotas()">🗑️ Borrar notas</button>
+
+<p id="estado">Selecciona una canción para comenzar.</p>
+
+</div>
+
+<div class="panel">
+
+<b>🎵 Seleccionar música del dispositivo</b>
+
+<input id="archivoMusica" type="file" accept="audio/*">
+
+<div id="song">Ninguna canción seleccionada</div>
+
+<audio id="audio" controls style="width:100%;margin-top:10px"></audio>
+
+</div>
+
+<div id="editorPanel" class="panel">
+
+<div id="time">0.00 segundos</div>
+
+<p>
+Mueve la canción al momento donde quieras colocar una nota
+y toca uno de los cuatro carriles.
+</p>
+
+<div id="editor">
+
+<div class="lanes">
+
+<div class="lane">
+<button class="laneButton" onclick="ponerNota(0)">⬅ Carril 1</button>
+</div>
+
+<div class="lane">
+<button class="laneButton" onclick="ponerNota(1)">⬆ Carril 2</button>
+</div>
+
+<div class="lane">
+<button class="laneButton" onclick="ponerNota(2)">⬇ Carril 3</button>
+</div>
+
+<div class="lane">
+<button class="laneButton" onclick="ponerNota(3)">➡ Carril 4</button>
+</div>
+
+</div>
+
+</div>
 
 <br>
 
-<button onclick="nuevo()">🆕 Nuevo nivel</button>
-<button onclick="editar()">✏️ Editor</button>
-<button onclick="jugar()">▶ Jugar</button>
+<label>
+⚡ Velocidad:
+<span id="speedText">1.00x</span>
+</label>
 
-<p id="info">Carga una canción para comenzar.</p>
+<input
+id="speed"
+type="range"
+min="0.5"
+max="2.5"
+step="0.05"
+value="1"
+style="width:100%"
+>
+
+<br>
+
+<button onclick="guardar()">💾 Guardar nivel</button>
+<button onclick="cargar()">📂 Cargar nivel</button>
+
+<div id="notes"></div>
+
 </div>
 
-<div id="editor">
-<p>Editor: reproduce la canción y toca un carril para colocar una nota.</p>
-<button onclick="toggleMusica()">▶ / ⏸</button>
-<button onclick="borrar()">🗑 Borrar última</button>
-<button onclick="menu()">↩ Menú</button>
+<div id="gamePanel" class="panel hidden">
+
+<div>
+🎮 Puntos: <b id="score">0</b>
 </div>
+
+<br>
 
 <div id="game">
-<div class="lane" data-l="0"></div>
-<div class="lane" data-l="1"></div>
-<div class="lane" data-l="2"></div>
-<div class="lane" data-l="3"></div>
-<div id="hit"></div>
+
+<div class="playLane"></div>
+<div class="playLane"></div>
+<div class="playLane"></div>
+<div class="playLane"></div>
+
+<div class="hit"></div>
+
 </div>
 
-<div id="buttons">
-<button class="key" onclick="t
+<p>Toca el carril cuando la nota llegue a la línea blanca.</p>
+
+</div>
+
+</div>
+
+<script>
+
+let notas=[];
+let jugando=false;
+let puntuacion=0;
+let animationFrame;
+
+const audio=document.getElementById("audio");
+const archivo=document.getElementById("archivoMusica");
+const editor=document.getElementById("editor");
+const estado=document.getElementById("estado");
+const tiempo=document.getElementById("time");
+const speed=document.getElementById("speed");
+const speedText=document.getElementById("speedText");
+const notesList=document.getElementById("notes");
+
+
+// ---------------------------
+// MÚSICA
+// ---------------------------
+
+archivo.addEventListener("change",function(){
+
+const file=this.files[0];
+
+if(!file)return;
+
+audio.src=URL.createObjectURL(file);
+
+document.getElementById("song").textContent=file.name;
+
+notas=[];
+
+mostrarNotas();
+
+estado.textContent="Canción cargada. Ahora puedes crear tu nivel.";
+
+});
+
+
+// ---------------------------
+// TIEMPO
+// ---------------------------
+
+audio.addEventListener("timeupdate",function(){
+
+tiempo.textContent=audio.currentTime.toFixed(2)+" segundos";
+
+if(!jugando){
+
+mostrarNotas();
+
+}
+
+});
+
+
+// ---------------------------
+// VELOCIDAD
+// ---------------------------
+
+speed.addEventListener("input",function(){
+
+speedText.textContent=
+Number(this.value).toFixed(2)+"x";
+
+});
+
+
+// ---------------------------
+// CREAR NOTA
+// ---------------------------
+
+function ponerNota(carril){
+
+if(!audio.src){
+
+estado.textContent=
+"Primero selecciona una canción.";
+
+return;
+
+}
+
+let nota={
+
+tiempo:audio.currentTime,
+
+carril:carril
+
+};
+
+notas.push(nota);
+
+notas.sort(function(a,b){
+
+return a.tiempo-b.tiempo;
+
+});
+
+mostrarNotas();
+
+mostrarLista();
+
+estado.textContent=
+"Nota colocada en el carril "+
+(carril+1)+
+" en "+
+audio.currentTime.toFixed(2)+
+" segundos.";
+
+}
+
+
+// ---------------------------
+// MOSTRAR NOTAS
+// ---------------------------
+
+function mostrarNotas(){
+
+document.querySelectorAll(".note").forEach(function(n){
+
+n.remove();
+
+});
+
+notas.forEach(function(n,i){
+
+let diferencia=n.tiempo-audio.currentTime;
+
+let posicion=205-(diferencia*80);
+
+if(posicion<5)posicion=5;
+
+if(posicion>405)posicion=405;
+
+let nota=document.createElement("div");
+
+nota.className="note";
+
+nota.style.left=
+"calc("+
+(n.carril*25)+
+"% + 8px)";
+
+nota.style.top=posicion+"px";
+
+nota.title=
+"Nota "+(i+1)+
+" - toca para eliminar";
+
+nota.onclick=function(){
+
+notas.splice(i,1);
+
+mostrarNotas();
+
+mostrarLista();
+
+};
+
+editor.appendChild(nota);
+
+});
+
+}
+
+
+// ---------------------------
+// LISTA
+// ---------------------------
+
+function mostrarLista(){
+
+notesList.innerHTML="";
+
+notas.forEach(function(n,i){
+
+let fila=document.createElement("div");
+
+fila.className="noteRow";
+
+fila.innerHTML=
+"<span>"+
+n.tiempo.toFixed(2)+
+"s — Carril "+
+(n.carril+1)+
+"</span>";
+
+let boton=document.createElement("button");
+
+boton.textContent="Eliminar";
+
+boton.onclick=function(){
+
+notas.splice(i,1);
+
+mostrarNotas();
+
+mostrarLista();
+
+};
+
+fila.appendChild(boton);
+
+notesList.appendChild(fila);
+
+});
+
+}
+
+
+// ---------------------------
+// BORRAR
+// ---------------------------
+
+function borrarNotas(){
+
+if(confirm("¿Borrar todas las notas?")){
+
+notas=[];
+
+mostrarNotas();
+
+mostrarLista();
+
+estado.textContent="Todas las notas fueron borradas.";
+
+}
+
+}
+
+
+// ---------------------------
+// GUARDAR
+// ---------------------------
+
+function guardar(){
+
+let nivel={
+
+velocidad:Number(speed.value),
+
+notas:notas
+
+};
+
+localStorage.setItem(
+"nivelRitmoVertical",
+JSON.stringify(nivel)
+);
+
+estado.textContent=
+"✅ Nivel guardado en el teléfono.";
+
+}
+
+
+// ---------------------------
+// CARGAR
+// ---------------------------
+
+function cargar(){
+
+let datos=
+localStorage.getItem("nivelRitmoVertical");
+
+if(!datos){
+
+estado.textContent=
+"No hay ningún nivel guardado.";
+
+return;
+
+}
+
+let nivel=JSON.parse(datos);
+
+notas=nivel.notas||[];
+
+speed.value=nivel.velocidad||1;
+
+speedText.textContent=
+Number(speed.value).toFixed(2)+"x";
+
+mostrarNotas();
+
+mostrarLista();
+
+estado.textContent=
+"✅ Nivel cargado.";
+
+}
+
+
+// ---------------------------
+// EDITOR
+// ---------------------------
+
+function modoEditor(){
+
+jugando=false;
+
+cancelAnimationFrame(animationFrame);
+
+document.getElementById("gamePanel")
+.classList.add("hidden");
+
+document.getElementById("editorPanel")
+.classList.remove("hidden");
+
+audio.pause();
+
+mostrarNotas();
+
+}
+
+
+// ---------------------------
+// PROBAR NIVEL
+// ---------------------------
+
+function probar(){
+
+if(!audio.src){
+
+estado.textContent=
+"Primero selecciona una canción.";
+
+return;
+
+}
+
+document.getElementById("editorPanel")
+.classList.add("hidden");
+
+document.getElementById("gamePanel")
+.classList.remove("hidden");
+
+puntuacion=0;
+
+document.getElementById("score")
+.textContent="0";
+
+jugando=true;
+
+audio.currentTime=0;
+
+audio.playbackRate=
+Number(speed.value);
+
+audio.play();
+
+animarJuego();
+
+}
+
+
+// ---------------------------
+// ANIMACIÓN DEL JUEGO
+// ---------------------------
+
+function animarJuego(){
+
+if(!jugando)return;
+
+document.querySelectorAll(".falling")
+.forEach(function(n){
+
+n.remove();
+
+});
+
+let actual=audio.currentTime;
+
+notas.forEach(function(n){
+
+let diferencia=n.tiempo-actual;
+
+if(diferencia>-1 && diferencia<5){
+
+let objeto=document.createElement("div");
+
+objeto.className="falling";
+
+objeto.style.left=
+"calc("+
+(n.carril*25)+
+"% + 5px)";
+
+objeto.style.top=
+(360-(diferencia*70))+
+"px";
+
+objeto.dataset.tiempo=n.tiempo;
+
+objeto.dataset.carril=n.carril;
+
+document.getElementById("game")
+.appendChild(objeto);
+
+}
+
+});
+
+if(!audio.ended){
+
+animationFrame=
+requestAnimationFrame(animarJuego);
+
+}else{
+
+jugando=false;
+
+estado.textContent=
+"🎉 Terminaste el nivel.";
+
+}
+
+}
+
+
+// ---------------------------
+// CONTROLES DE LOS 4 CARRILES
+// ---------------------------
+
+document.querySelectorAll(".playLane")
+.forEach(function(lane,carril){
+
+lane.addEventListener("click",function(){
+
+if(!jugando)return;
+
+let ahora=audio.currentTime;
+
+let indice=-1;
+
+let distancia=0.25;
+
+notas.forEach(function(n,i){
+
+if(n.carril!==carril)return;
+
+let d=Math.abs(n.tiempo-ahora);
+
+if(d<distancia){
+
+distancia=d;
+
+indice=i;
+
+}
+
+});
+
+if(indice!==-1){
+
+notas.splice(indice,1);
+
+puntuacion+=100;
+
+document.getElementById("score")
+.textContent=puntuacion;
+
+}
+
+});
+
+});
+
+</script>
+
+</body>
+        </html>
